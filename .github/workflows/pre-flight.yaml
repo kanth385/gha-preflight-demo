@@ -9,9 +9,10 @@ on:
         required: false
         default: '.github/preflight/env-config.yaml'
     outputs:
+      # workflow-level output MUST reference a job output (jobs.<id>.outputs.<name>)
       manifest-file:
         description: 'Relative path to generated manifest file (JSON)'
-        value: ${{ steps.gen.outputs.manifest-file }}
+        value: ${{ jobs.generate-manifest.outputs.manifest-file }}
 
 permissions:
   contents: read
@@ -19,8 +20,11 @@ permissions:
 jobs:
   generate-manifest:
     runs-on: ubuntu-latest
+
+    # job-level outputs must reference step outputs (steps.<id>.outputs.<name>)
     outputs:
       manifest-file: ${{ steps.gen.outputs.manifest-file }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,7 +44,7 @@ jobs:
           CONFIG_PATH="${{ inputs.env-config }}"
           echo "Using config: $CONFIG_PATH"
           python .github/preflight/generate_manifest.py --config "$CONFIG_PATH" --out build/manifest.json
-          # expose a step output (so the workflow-call can reference it)
+          # set step output, so job outputs can reference it
           echo "manifest-file=build/manifest.json" >> $GITHUB_OUTPUT
 
       - name: Upload manifest artifact (for debugging)

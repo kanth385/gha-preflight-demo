@@ -7,7 +7,6 @@ on:
 
 jobs:
   call-preflight:
-    # call the reusable workflow as a job within this workflow (local reference)
     uses: ./.github/workflows/pre-flight.yaml
     with:
       env-config: ".github/preflight/env-config.yaml"
