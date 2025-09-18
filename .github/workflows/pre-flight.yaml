@@ -19,6 +19,8 @@ permissions:
 jobs:
   generate-manifest:
     runs-on: ubuntu-latest
+    outputs:
+      manifest-file: ${{ steps.gen.outputs.manifest-file }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
