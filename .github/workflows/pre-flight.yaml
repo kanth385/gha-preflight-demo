@@ -1,0 +1,48 @@
+name: Pre-Flight (reusable)
+
+on:
+  workflow_call:
+    inputs:
+      env-config:
+        type: string
+        description: 'Path to environment config YAML (relative to repo root)'
+        required: false
+        default: '.github/preflight/env-config.yaml'
+    outputs:
+      manifest-file:
+        description: 'Relative path to generated manifest file (JSON)'
+        value: ${{ steps.gen.outputs.manifest-file }}
+
+permissions:
+  contents: read
+
+jobs:
+  generate-manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip PyYAML
+
+      - name: Run manifest generator
+        id: gen
+        run: |
+          mkdir -p build
+          CONFIG_PATH="${{ inputs.env-config }}"
+          echo "Using config: $CONFIG_PATH"
+          python .github/preflight/generate_manifest.py --config "$CONFIG_PATH" --out build/manifest.json
+          # expose a step output (so the workflow-call can reference it)
+          echo "manifest-file=build/manifest.json" >> $GITHUB_OUTPUT
+
+      - name: Upload manifest artifact (for debugging)
+        uses: actions/upload-artifact@v4
+        with:
+          name: preflight-manifest
+          path: build/manifest.json

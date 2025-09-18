@@ -1,0 +1,29 @@
+name: Demo - Call Reusable Pre-Flight
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  call-preflight:
+    # call the reusable workflow as a job within this workflow (local reference)
+    uses: ./.github/workflows/pre-flight.yaml
+    with:
+      env-config: ".github/preflight/env-config.yaml"
+
+  use-manifest:
+    needs: call-preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download manifest artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: preflight-manifest
+          path: build/artifacts
+
+      - name: Show manifest path (workflow output) and content
+        run: |
+          echo "Manifest path from reusable workflow output: ${{ needs.call-preflight.outputs.manifest-file }}"
+          echo "---- Manifest content ----"
+          cat build/artifacts/manifest.json || true

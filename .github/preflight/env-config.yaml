@@ -1,0 +1,9 @@
+env: dev
+app:
+  name: demo-app
+  version: "0.1.0"
+deploy:
+  region: us-west-2
+  bucket: demo-artifacts
+secrets:
+  should_not_store: true
